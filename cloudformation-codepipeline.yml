@@ -233,4 +233,4 @@ Resources:
                   - ssm:DeleteParameter*
                   - ssm:PutParameter
                 Resource:
-                - Fn::Sub: arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:parameter/cdk-bootstrap/*"
+                - Fn::Sub: arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cdk-bootstrap/*"
