@@ -2,7 +2,7 @@
     "app": "python3 eks-fargate.py",
     "context": {
         "account": "",
-        "region": "us-east-2",
+        "region": "",
         "create_new_cluster_admin_role": "True",
         "existing_admin_role_arn": "arn:aws:iam::123456789123:role/RoleName",
         "create_new_vpc": "True",
