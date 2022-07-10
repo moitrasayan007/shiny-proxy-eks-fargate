@@ -204,7 +204,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:*
-                Resource: "arn:aws:s3:::cdk-*/*"
+                Resource: "*"
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
