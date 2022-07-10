@@ -1,0 +1,27 @@
+{
+    "app": "python3 eks-fargate.py",
+    "context": {
+        "account": "",
+        "region": "us-east-2",
+        "create_new_cluster_admin_role": "True",
+        "existing_admin_role_arn": "arn:aws:iam::123456789123:role/RoleName",
+        "create_new_vpc": "True",
+        "vpc_cidr": "10.0.0.0/22",
+        "vpc_cidr_mask_public": 26,
+        "vpc_cidr_mask_private": 24,
+        "existing_vpc_name": "VPC",
+        "eks_version": "1.22",
+        "create_cluster_exports": "True",
+        "deploy_aws_lb_controller": "True",
+        "deploy_metrics_server": "True",
+        "deploy_bastion": "True",
+        "bastion_node_type": "t3.large",
+        "bastion_disk_size": 20,
+        "deploy_cloudwatch_container_insights_metrics": "False",
+        "deploy_cloudwatch_container_insights_logs": "False",
+        "cloudwatch_container_insights_logs_retention_days": 7,
+        "deploy_sg_for_pods": "False",
+        "fargate_only_cluster": "True",
+        "fargate_logs_to_cloudwatch": "True"
+    }
+}
