@@ -2,9 +2,7 @@
 Purpose
 
 Example of how to provision an EKS cluster, create the IAM Roles for Service Accounts (IRSA) mappings,
-and then deploy various common cluster add-ons (AWS Load Balancer Controller, ExternalDNS, EBS & EFS CSI Drivers,
-Cluster Autoscaler, AWS Managed OpenSearch and fluentbit, Metrics Server, Calico Network Policy provider,
-CloudWatch Container Insights, Security Groups for Pods, Kubecost, AWS Managed Prometheus and Grafana, etc.)
+and then deploy cluster add-ons AWS Load Balancer Controller
 
 NOTE: This pulls many parameters/options for what you'd like from the cdk.json context section.
 Have a look there for many options you can change to customise this template for your environments/needs.
@@ -26,7 +24,7 @@ import os
 import yaml
 
 
-class EKSClusterStack(Stack):
+class EKSClusterShinyProxyStack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -580,99 +578,6 @@ class EKSClusterStack(Stack):
             fluentbit_chart_cw.node.add_dependency(
                 fluentbit_cw_service_account)
 
-        # Security Group for Pods
-        if (self.node.try_get_context("deploy_sg_for_pods") == "True"):
-            # The EKS Cluster was still defaulting to 1.7.5 on 12/9/21 and SG for Pods requires 1.7.7
-            # Upgrading that to the latest version 1.9.0 via the Helm Chart
-            # If this process somehow breaks the CNI you can repair it manually by following the steps here:
-            # https://docs.aws.amazon.com/eks/latest/userguide/managing-vpc-cni.html#updating-vpc-cni-add-on
-            # TODO: Move this to the CNI Managed Add-on when that supports flipping the required ENABLE_POD_ENI setting
-
-            # Adopting the existing aws-node resources to Helm
-            patch_types = ["DaemonSet", "ClusterRole", "ClusterRoleBinding"]
-            patches = []
-            for kind in patch_types:
-                patch = eks.KubernetesPatch(
-                    self, "CNI-Patch-"+kind,
-                    cluster=eks_cluster,
-                    resource_name=kind + "/aws-node",
-                    resource_namespace="kube-system",
-                    apply_patch={
-                        "metadata": {
-                            "annotations": {
-                                "meta.helm.sh/release-name": "aws-vpc-cni",
-                                "meta.helm.sh/release-namespace": "kube-system",
-                            },
-                            "labels": {
-                                "app.kubernetes.io/managed-by": "Helm"
-                            }
-                        }
-                    },
-                    restore_patch={},
-                    patch_type=eks.PatchType.STRATEGIC
-                )
-                # We don't want to clean this up on Delete - it is a one-time patch to let the Helm Chart own the resources
-                patch_resource = patch.node.find_child("Resource")
-                patch_resource.apply_removal_policy(RemovalPolicy.RETAIN)
-                # Keep track of all the patches to set dependencies down below
-                patches.append(patch)
-
-            # Create the Service Account
-            sg_pods_service_account = eks_cluster.add_service_account(
-                "aws-node",
-                name="aws-node-helm",
-                namespace="kube-system"
-            )
-
-            # Give it the required policies
-            sg_pods_service_account.role.add_managed_policy(
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKS_CNI_Policy"))
-            # sg_pods_service_account.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSVPCResourceController"))
-            eks_cluster.role.add_managed_policy(
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEKSVPCResourceController"))
-
-            # Deploy the Helm chart
-            # For more info check out https://github.com/aws/eks-charts/tree/master/stable/aws-vpc-cni
-            # Note that for some regions different account # required - https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html
-            sg_pods_chart = eks_cluster.add_helm_chart(
-                "aws-vpc-cni",
-                chart="aws-vpc-cni",
-                version="1.1.12",
-                release="aws-vpc-cni",
-                repository="https://aws.github.io/eks-charts",
-                namespace="kube-system",
-                values={
-                    "init": {
-                        "image": {
-                            "region": self.region,
-                            "account": "602401143452",
-                        },
-                        "env": {
-                            "DISABLE_TCP_EARLY_DEMUX": True
-                        }
-                    },
-                    "image": {
-                        "region": self.region,
-                        "account": "602401143452"
-                    },
-                    "env": {
-                        "ENABLE_POD_ENI": True
-                    },
-                    "serviceAccount": {
-                        "create": False,
-                        "name": "aws-node-helm"
-                    },
-                    "crd": {
-                        "create": False
-                    },
-                    "originalMatchLabels": True
-                }
-            )
-            # This depends both on the service account and the patches to the existing CNI resources having been done first
-            sg_pods_chart.node.add_dependency(sg_pods_service_account)
-            for patch in patches:
-                sg_pods_chart.node.add_dependency(patch)
-
         # Run everything via Fargate (i.e. no EC2 Nodes/Managed Node Group)
         # NOTE: You need to add any namespaces other than kube-system and default to this
         # OR create additional Fargate Profiles with the additional namespaces/labels
@@ -786,6 +691,6 @@ else:
                             os.environ["CDK_DEFAULT_REGION"])
 # Note that if we didn't pass through the ACCOUNT and REGION from these environment variables that
 # it won't let us create 3 AZs and will only create a max of 2 - even when we ask for 3 in eks_vpc
-eks_cluster_stack = EKSClusterStack(
-    app, "EKSClusterStack", env=Environment(account=account, region=region))
+eks_cluster_stack = EKSClusterShinyProxyStack(
+    app, "EKSClusterShinyProxyStack", env=Environment(account=account, region=region))
 app.synth()

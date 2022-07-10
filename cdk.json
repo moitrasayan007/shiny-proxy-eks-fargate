@@ -20,7 +20,6 @@
         "deploy_cloudwatch_container_insights_metrics": "False",
         "deploy_cloudwatch_container_insights_logs": "False",
         "cloudwatch_container_insights_logs_retention_days": 7,
-        "deploy_sg_for_pods": "False",
         "fargate_only_cluster": "True",
         "fargate_logs_to_cloudwatch": "True"
     }
