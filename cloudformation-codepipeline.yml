@@ -230,7 +230,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ssm:GetParameter*
-                  - ssm:PutParameter*
                   - ssm:DeleteParameter*
+                  - ssm:PutParameter
                 Resource:
                 - Fn::Sub: arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:parameter/cdk-bootstrap/*"
