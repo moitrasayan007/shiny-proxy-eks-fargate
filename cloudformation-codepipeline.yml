@@ -147,11 +147,6 @@ Resources:
                   - "*"
               - Effect: Allow
                 Action:
-                  - iam:PassRole
-                Resource:
-                  - Fn::GetAtt: CloudFormationServiceRole.Arn
-              - Effect: Allow
-                Action:
                   - s3:GetObject
                   - s3:GetObjectVersion
                   - s3:PutObject
@@ -202,122 +197,40 @@ Resources:
                   - codebuild:UpdateReport
                   - codebuild:BatchPutTestCases
                 Resource: "*"
-
-  #
-  # Service role according to https://docs.aws.amazon.com/lambda/latest/dg/build-pipeline.html
-  #
-  CloudFormationServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - cloudformation.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSLambdaExecute
-      Policies:
-        - PolicyName: CloudFormationTrustPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
               - Effect: Allow
                 Action:
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                  - s3:GetBucketVersioning
-                Resource:
-                  - "*"
+                - cloudformation:*
+                Resource: "*"
               - Effect: Allow
                 Action:
-                  - s3:PutObject
-                Resource:
-                  - Fn::Sub: arn:aws:s3:::${ArtifactsBucket}/*
+                  - s3:*
+                Resource: "arn:aws:s3:::cdk-*/*"
               - Effect: Allow
                 Action:
-                  - lambda:*
-                Resource:
-                  - Fn::Sub: arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
               - Effect: Allow
                 Action:
-                  - lambda:GetEventSourceMapping
-                  - lambda:CreateEventSourceMapping
-                  - lambda:DeleteEventSourceMapping
-                Resource:
-                  - "*"
+                  - sts:AssumeRole
+                  - iam:*Role*
+                Resource: 
+                - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/cdk-*"
               - Effect: Allow
                 Action:
-                  - apigateway:*
+                  - ecr:SetRepositoryPolicy
+                  - ecr:GetLifecyclePolicy
+                  - ecr:PutImageScanningConfiguration
+                  - ecr:DescribeRepositories
+                  - ecr:CreateRepository
+                  - ecr:DeleteRepository
                 Resource:
-                  - Fn::Sub: arn:aws:apigateway:${AWS::Region}::*
+                - Fn::Sub: arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/cdk-*"
               - Effect: Allow
                 Action:
-                  - sns:*
+                  - ssm:GetParameter*
+                  - ssm:PutParameter*
+                  - ssm:DeleteParameter*
                 Resource:
-                  - "*"
-              - Effect: Allow
-                Action:
-                  - sqs:*
-                Resource:
-                  - "*"
-              - Effect: Allow
-                Action:
-                  - iam:GetRole
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:PutRolePolicy
-                Resource:
-                  - Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/*
-              - Effect: Allow
-                Action:
-                  - iam:AttachRolePolicy
-                  - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
-                Resource:
-                  - Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/*
-              - Effect: Allow
-                Action:
-                  - iam:PassRole
-                Resource:
-                  - "*"
-              - Effect: Allow
-                Action:
-                  - cloudformation:CreateChangeSet
-                Resource:
-                  - Fn::Sub: arn:aws:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31
-                  - Fn::Sub: arn:aws:cloudformation:${AWS::Region}:aws:transform/Include
-              - Effect: Allow
-                Action:
-                  - codedeploy:CreateApplication
-                  - codedeploy:DeleteApplication
-                  - codedeploy:RegisterApplicationRevision
-                Resource:
-                  - Fn::Sub: arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:application:*
-              - Effect: Allow
-                Action:
-                  - codedeploy:CreateDeploymentGroup
-                  - codedeploy:CreateDeployment
-                  - codedeploy:GetDeployment
-                Resource:
-                  - Fn::Sub: arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:*
-              - Effect: Allow
-                Action:
-                  - codedeploy:GetDeploymentConfig
-                Resource:
-                  - Fn::Sub: arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentconfig:*
-              - Effect: Allow
-                Action:
-                  - dynamodb:*
-                Resource:
-                  - Fn::Sub: arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeVpcs
-                  - ec2:DescribeSubnets
-                  - ec2:DescribeSecurityGroups
-                Resource:
-                  - "*"
+                - Fn::Sub: arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:parameter/cdk-bootstrap/*"
