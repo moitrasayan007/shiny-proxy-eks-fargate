@@ -15,7 +15,7 @@ phases:
       - echo "Update Image tag in kube-manifest..."
       - sed -i 's@CONTAINER_IMAGE_SHINY_APP@'"$REPOSITORY_URI_SHINY_APP:$TAG"'@' shinyproxy-example/application.yml
       - sed -i 's@CONTAINER_IMAGE_SHINY_PROXY@'"$REPOSITORY_URI_SHINY_PROXY_APP:$TAG"'@' kube-deploy/deployment.yaml
-      - sed -i 's@CONTAINER_IMAGE_KUBE_PROXY@'"$REPOSITORY_URI_KUBE:$TAG"'@' kube-deploy/deployment.yml
+      - sed -i 's@CONTAINER_IMAGE_KUBE_PROXY@'"$REPOSITORY_URI_KUBE:$TAG"'@' kube-deploy/deployment.yaml
       # Verify AWS CLI Version        
       - echo "Verify AWS CLI Version..."
       - aws --version
@@ -25,6 +25,7 @@ phases:
       # Update Kube config Home Directory
       - export KUBECONFIG=$HOME/.kube/config
       - export EKS_CLUSTER_NAME=$(aws cloudformation --region $AWS_REGION describe-stacks --stack-name $EKS_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='EKSClusterName'].OutputValue" --output text)
+      - echo $EKS_CLUSTER_NAME
   build:
     commands:
       # Build Docker Image
