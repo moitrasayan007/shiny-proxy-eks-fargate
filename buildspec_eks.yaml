@@ -30,7 +30,10 @@ phases:
     commands:
       # Build Docker Image
       - echo "Build started on `date`"
-      - cd kube-proxy-sidecar
+      - cd shiny-sample-app
+      - echo "Building the Docker image..."
+      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+      - cd ../kube-proxy-sidecar
       - echo "Building the Docker image..."
       - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
       - cd ../shinyproxy-example
