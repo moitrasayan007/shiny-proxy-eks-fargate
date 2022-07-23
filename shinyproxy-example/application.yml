@@ -1,0 +1,44 @@
+proxy:
+  port: 8080
+  authentication: simple
+  admin-groups: admins
+  users:
+  - name: admin
+    password: Admin@123
+    groups: admins
+  - name: guest
+    password: Guest@123
+    groups: guest
+  container-backend: kubernetes
+  container-wait-time: 300000
+  heartbeat-rate: 10000
+  heartbeat-timeout: 300000
+  kubernetes:
+    internal-networking: true
+    url: http://localhost:8001
+    namespace: shinyproxy
+    image-pull-policy: Always
+    image-pull-secret:
+  specs:
+  - id: 00_demo_shiny_application
+    display-name: Simple Shiny Application Demo
+    description: Simple Shiny Application Demo
+    container-cmd: ["sh", "/usr/bin/shiny-server.sh"]
+    container-image: 867881815416.dkr.ecr.us-east-1.amazonaws.com/shiny-application:v1
+    access-groups: [admins, guest]
+  - id: 01_hello_shiny_application
+    display-name: Hello Application
+    description: Application which demonstrates the basics of a Shiny app
+    container-cmd: ["R", "-e", "shinyproxy::run_01_hello()"]
+    container-image: openanalytics/shinyproxy-demo
+    access-groups: [admins, guest]
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+logging:
+  file:
+    shinyproxy.log
