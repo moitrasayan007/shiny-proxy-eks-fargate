@@ -32,26 +32,24 @@ phases:
       - echo "Build started on `date`"
       - cd shiny-sample-app
       - echo "Building the Docker image..."
-      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+      - docker build --tag $REPOSITORY_URI_SHINY_APP:$TAG .
       - cd ../kube-proxy-sidecar
       - echo "Building the Docker image..."
       - docker build --tag $REPOSITORY_URI_KUBE:$TAG .
       - cd ../shinyproxy-example
       - echo "Building the Docker image..."
-      - docker build --tag $REPOSITORY_URI_SHINY_APP:$TAG .
+      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+      - pwd
   post_build:
     commands:
       # Push Docker Image to ECR Repository
       - echo "Build completed on `date`"
-      - cd shiny-sample-app
       - echo "Pushing the Docker image $REPOSITORY_URI_SHINY_APP:$TAG to ECR Repository"
       - docker push $REPOSITORY_URI_SHINY_APP:$TAG
       - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_SHINY_APP:$TAG"
-      - cd ../kube-proxy-sidecar
       - echo "Pushing the Docker image $REPOSITORY_URI_KUBE:$TAG to ECR Repository"
       - docker push $REPOSITORY_URI_KUBE:$TAG
       - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_KUBE:$TAG"
-      - cd ../shinyproxy-example
       - echo "Pushing the Docker image $REPOSITORY_URI_SHINY_PROXY_APP:$TAG to ECR Repository"
       - docker push $REPOSITORY_URI_SHINY_PROXY_APP:$TAG
       - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_SHINY_PROXY_APP:$TAG"
