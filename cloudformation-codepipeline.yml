@@ -17,8 +17,44 @@ Parameters:
     Type: String
     Description: The name of the branch.
     Default: master
+  KubeProxyECR:
+    Type: String
+    Description: The name of the Kube Proxy ECR.
+  ShinyProxyECR:
+    Type: String
+    Description: The name of the Shiny Proxy ECR.
+  ShinyAppECR:
+    Type: String
+    Description: The name of the Shiny App ECR.
 
 Resources:
+
+  KubeProxy: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: 
+        Ref: KubeProxyECR
+      ImageScanningConfiguration: 
+        ScanOnPush: true 
+      ImageTagMutability: 'IMMUTABLE'
+  
+  ShinyProxy: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName:
+        Ref: ShinyProxyECR
+      ImageTagMutability: 'IMMUTABLE'
+      ImageScanningConfiguration: 
+        ScanOnPush: true
+  
+  ShinyApp: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName:
+        Ref: ShinyAppECR
+      ImageTagMutability: 'IMMUTABLE'
+      ImageScanningConfiguration: 
+        ScanOnPush: true
 
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -59,6 +95,21 @@ Resources:
                 - Name: SourceOutput
               OutputArtifacts:
                 - Name: BuildOutput
+        - Name: Deploy
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName:
+                  Ref: CodeBuildProjectEKS
+              InputArtifacts:
+                - Name: BuildOutput
+              OutputArtifacts:
+                - Name: EKSBuildOutput
         
       RoleArn:
         Fn::GetAtt:  CodePipelineServiceRole.Arn
@@ -74,7 +125,7 @@ Resources:
         Fn::Sub: ${RepositoryName}-build
       Source:
         Type: CODEPIPELINE
-        BuildSpec: buildspec.yaml
+        BuildSpec: buildspec_cdk.yaml
       Artifacts:
         Type: CODEPIPELINE
       ServiceRole:
@@ -91,6 +142,43 @@ Resources:
         Type: S3
         Location:
           Fn::Sub: ${ArtifactsBucket}/cache
+  
+  CodeBuildProjectEKS:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name:
+        Fn::Sub: ${RepositoryName}-eks-build
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec_eks.yaml
+      Artifacts:
+        Type: CODEPIPELINE
+      ServiceRole:
+        Fn::GetAtt: CodeBuildServiceRole.Arn
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        EnvironmentVariables:
+          - Name: S3_BUCKET
+            Value:
+              Ref: ArtifactsBucket
+          - Name: EKS_STACK_NAME
+            Value: "EKSClusterShinyProxyStack"
+          - Name: REPOSITORY_URI_KUBE
+            Value: 
+              Fn::Sub: "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${KubeProxyECR}"
+          - Name: REPOSITORY_URI_SHINY_PROXY_APP
+            Value: 
+              Fn::Sub: "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ShinyProxyECR}"
+          - Name: REPOSITORY_URI_SHINY_APP
+            Value: 
+              Fn::Sub: "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ShinyAppECR}"
+
+      Cache:
+        Type: S3
+        Location:
+          Fn::Sub: ${ArtifactsBucket}/build
 
   ArtifactsBucket:
     Type: AWS::S3::Bucket
@@ -230,4 +318,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - ssm:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - eks:DescribeCluster
                 Resource: "*"

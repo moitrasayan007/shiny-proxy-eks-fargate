@@ -24,7 +24,7 @@ proxy:
     display-name: Simple Shiny Application Demo
     description: Simple Shiny Application Demo
     container-cmd: ["sh", "/usr/bin/shiny-server.sh"]
-    container-image: 867881815416.dkr.ecr.us-east-1.amazonaws.com/shiny-application:v1
+    container-image: CONTAINER_IMAGE_SHINY_APP
     access-groups: [admins, guest]
   - id: 01_hello_shiny_application
     display-name: Hello Application

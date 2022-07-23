@@ -1,0 +1,74 @@
+# AWS CodeBuild buildspec to deploy eks-fargate.py
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+      nodejs: 16
+  pre_build:
+    commands:
+      # Docker Image Tag with Date Time & Code Buiild Resolved Source Version
+      - TAG="$(date +%Y-%m-%d.%H.%M.%S).$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+      # Update Image tag in our Kubernetes Deployment Manifest        
+      - echo "Update Image tag in kube-manifest..."
+      - sed -i 's@CONTAINER_IMAGE_SHINY_APP@'"$REPOSITORY_URI_SHINY_APP:$TAG"'@' shinyproxy-example/application.yml
+      - sed -i 's@CONTAINER_IMAGE_SHINY_PROXY@'"$REPOSITORY_URI_SHINY_PROXY_APP:$TAG"'@' kube-deploy/application.yml
+      - sed -i 's@CONTAINER_IMAGE_KUBE_PROXY@'"$REPOSITORY_URI_KUBE:$TAG"'@' kube-deploy/application.yml
+      # Verify AWS CLI Version        
+      - echo "Verify AWS CLI Version..."
+      - aws --version
+      # Login to ECR Registry for docker to push the image to ECR Repository
+      - echo "Login in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      # Update Kube config Home Directory
+      - export KUBECONFIG=$HOME/.kube/config
+      - export EKS_CLUSTER_NAME=$(aws cloudformation --region $AWS_REGION describe-stacks --stack-name $EKS_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='EKSClusterName'].OutputValue" --output text)
+  build:
+    commands:
+      # Build Docker Image
+      - echo "Build started on `date`"
+      - cd kube-proxy-sidecar
+      - echo "Building the Docker image..."
+      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+      - cd ../shinyproxy-example
+      - echo "Building the Docker image..."
+      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+  post_build:
+    commands:
+      # Push Docker Image to ECR Repository
+      - echo "Build completed on `date`"
+      - cd shiny-sample-app
+      - echo "Pushing the Docker image $REPOSITORY_URI_SHINY_APP:$TAG to ECR Repository"
+      - docker push $REPOSITORY_URI_SHINY_APP:$TAG
+      - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_SHINY_APP:$TAG"
+      - cd ../kube-proxy-sidecar
+      - echo "Pushing the Docker image $REPOSITORY_URI_KUBE:$TAG to ECR Repository"
+      - docker push $REPOSITORY_URI_KUBE:$TAG
+      - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_KUBE:$TAG"
+      - cd ../shinyproxy-example
+      - echo "Pushing the Docker image $REPOSITORY_URI_SHINY_PROXY_APP:$TAG to ECR Repository"
+      - docker push $REPOSITORY_URI_SHINY_PROXY_APP:$TAG
+      - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_SHINY_PROXY_APP:$TAG"
+      - cd ..
+      # Setup kubectl with our EKS Cluster              
+      - echo "Update Kube Config"      
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
+      # Apply changes to our Application using kubectl
+      - echo "Apply changes to kube manifests"            
+      - kubectl apply -f kube-deploy/
+      - echo "Completed applying changes to Kubernetes Objects"           
+      # Create Artifacts which we can use if we want to continue our pipeline for other stages
+      - printf '[{"name":"deployment.yaml","imageUri":"%s"}]' $REPOSITORY_URI_SHINY_PROXY_APP:$TAG > build.json
+      # Additional Commands to view your credentials      
+      #- echo "Credentials Value is..  ${CREDENTIALS}"      
+      #- echo "AWS_ACCESS_KEY_ID...  ${AWS_ACCESS_KEY_ID}"            
+      #- echo "AWS_SECRET_ACCESS_KEY...  ${AWS_SECRET_ACCESS_KEY}"            
+      #- echo "AWS_SESSION_TOKEN...  ${AWS_SESSION_TOKEN}"            
+      #- echo "AWS_EXPIRATION...  $AWS_EXPIRATION"             
+      #- echo "EKS_CLUSTER_NAME...  $EKS_CLUSTER_NAME"             
+artifacts:
+  files: 
+    - build.json   
+    - kube-deploy/*

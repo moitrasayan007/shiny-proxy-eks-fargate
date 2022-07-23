@@ -1,4 +1,10 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shiny-test
+  
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -30,7 +36,7 @@ spec:
     spec:
       containers:
       - name: shinyproxy
-        image: "867881815416.dkr.ecr.us-east-1.amazonaws.com/shinyproxy-application:v1"
+        image: CONTAINER_IMAGE_SHINY_PROXY
         imagePullPolicy: Always
         resources:
           requests:
@@ -42,7 +48,7 @@ spec:
         ports:
         - containerPort: 8080
       - name: kube-proxy-sidecar
-        image: "867881815416.dkr.ecr.us-east-1.amazonaws.com/kube-proxy-sidecar:v1"
+        image: CONTAINER_IMAGE_KUBE_PROXY
         imagePullPolicy: Always
         resources:
           requests:

@@ -619,7 +619,7 @@ class EKSClusterShinyProxyStack(Stack):
                 fargate_profile_name="default",
                 pod_execution_role=fargate_pod_execution_role,
                 selectors=[eks.Selector(
-                    namespace="kube-system",), eks.Selector(namespace="default"), eks.Selector(namespace="shinyproxy")]
+                    namespace="kube-system",), eks.Selector(namespace="default"), eks.Selector(namespace="shiny-test")]
             )
 
         # Send Fargate logs to CloudWatch Logs
