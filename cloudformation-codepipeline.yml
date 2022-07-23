@@ -107,7 +107,7 @@ Resources:
                 ProjectName:
                   Ref: CodeBuildProjectEKS
               InputArtifacts:
-                - Name: BuildOutput
+                - Name: SourceOutput
               OutputArtifacts:
                 - Name: EKSBuildOutput
         
@@ -219,6 +219,7 @@ Resources:
                   - codebuild:StartBuild
                 Resource:
                   - Fn::GetAtt: CodeBuildProject.Arn
+                  - Fn::GetAtt: CodeBuildProjectEKS.Arn
               - Effect: Allow
                 Action:
                   - cloudformation:DescribeStacks

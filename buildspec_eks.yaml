@@ -14,8 +14,8 @@ phases:
       # Update Image tag in our Kubernetes Deployment Manifest        
       - echo "Update Image tag in kube-manifest..."
       - sed -i 's@CONTAINER_IMAGE_SHINY_APP@'"$REPOSITORY_URI_SHINY_APP:$TAG"'@' shinyproxy-example/application.yml
-      - sed -i 's@CONTAINER_IMAGE_SHINY_PROXY@'"$REPOSITORY_URI_SHINY_PROXY_APP:$TAG"'@' kube-deploy/application.yml
-      - sed -i 's@CONTAINER_IMAGE_KUBE_PROXY@'"$REPOSITORY_URI_KUBE:$TAG"'@' kube-deploy/application.yml
+      - sed -i 's@CONTAINER_IMAGE_SHINY_PROXY@'"$REPOSITORY_URI_SHINY_PROXY_APP:$TAG"'@' kube-deploy/deployment.yaml
+      - sed -i 's@CONTAINER_IMAGE_KUBE_PROXY@'"$REPOSITORY_URI_KUBE:$TAG"'@' kube-deploy/deployment.yml
       # Verify AWS CLI Version        
       - echo "Verify AWS CLI Version..."
       - aws --version
