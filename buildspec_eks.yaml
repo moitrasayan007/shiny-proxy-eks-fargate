@@ -35,10 +35,10 @@ phases:
       - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
       - cd ../kube-proxy-sidecar
       - echo "Building the Docker image..."
-      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+      - docker build --tag $REPOSITORY_URI_KUBE:$TAG .
       - cd ../shinyproxy-example
       - echo "Building the Docker image..."
-      - docker build --tag $REPOSITORY_URI_SHINY_PROXY_APP:$TAG .
+      - docker build --tag $REPOSITORY_URI_SHINY_APP:$TAG .
   post_build:
     commands:
       # Push Docker Image to ECR Repository
