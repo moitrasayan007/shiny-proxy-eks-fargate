@@ -245,6 +245,7 @@ Resources:
                 Resource:
                   - Fn::GetAtt: ArtifactsBucket.Arn
                   - Fn::Sub: arn:aws:s3:::${ArtifactsBucket}/*
+                  
 
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
