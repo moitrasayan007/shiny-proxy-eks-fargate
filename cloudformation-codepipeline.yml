@@ -327,3 +327,7 @@ Resources:
                 Action:
                   - eks:DescribeCluster
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:*
+                Resource: "*"

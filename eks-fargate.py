@@ -89,7 +89,7 @@ class EKSClusterShinyProxyStack(Stack):
             masters_role=cluster_admin_role,
             # Make our cluster's control plane accessible only within our private VPC
             # This means that we'll have to ssh to a jumpbox/bastion or set up a VPN to manage it
-            endpoint_access=eks.EndpointAccess.PRIVATE,
+            endpoint_access=eks.EndpointAccess.PUBLIC_AND_PRIVATE,
             version=eks.KubernetesVersion.of(
                 self.node.try_get_context("eks_version")),
             default_capacity=0,
