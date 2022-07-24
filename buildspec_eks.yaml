@@ -26,6 +26,8 @@ phases:
       - export KUBECONFIG=$HOME/.kube/config
       - export EKS_CLUSTER_NAME=$(aws cloudformation --region $AWS_REGION describe-stacks --stack-name $EKS_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='EKSClusterName'].OutputValue" --output text)
       - echo $EKS_CLUSTER_NAME
+      - export EKS_CLUSTER_ROLE_ARN=$(aws cloudformation --region $AWS_REGION describe-stacks --stack-name $EKS_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='EKSClusterKubectlRoleARN'].OutputValue" --output text)
+      - echo $EKS_CLUSTER_ROLE_ARN
   build:
     commands:
       # Build Docker Image
@@ -54,16 +56,9 @@ phases:
       - docker push $REPOSITORY_URI_SHINY_PROXY_APP:$TAG
       - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI_SHINY_PROXY_APP:$TAG"
       - cd ..
-      # Extracting AWS Credential Information using STS Assume Role for kubectl
-      - echo "Setting Environment Variables related to AWS CLI for Kube Config Setup"          
-      - CREDENTIALS=$(aws sts assume-role --role-arn arn:aws:iam::867881815416:role/EksCodeBuildKubectlRole --role-session-name codebuild-kubectl --duration-seconds 900)
-      - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
-      - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
-      - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
-      - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
       # Setup kubectl with our EKS Cluster              
       - echo "Update Kube Config"      
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION --role-arn $EKS_CLUSTER_ROLE_ARN
       # Apply changes to our Application using kubectl
       - echo "Apply changes to kube manifests"            
       - kubectl apply -f kube-deploy/
