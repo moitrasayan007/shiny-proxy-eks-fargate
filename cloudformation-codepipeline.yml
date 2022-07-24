@@ -176,6 +176,12 @@ Resources:
           - Name: REPOSITORY_URI_SHINY_APP
             Value: 
               Fn::Sub: "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ShinyAppECR}"
+          - Name: AWS_ACCOUNT_ID
+            Value: 
+              Ref: "AWS::AccountId"
+          - Name: AWS_REGION
+            Value: 
+              Ref: "AWS::Region"
 
       Cache:
         Type: S3
@@ -331,5 +337,5 @@ Resources:
                 Resource: "*"
               - Effect: Allow
                 Action:
-                  - ecr:*
-                Resource: "*"
+                  - sts:AssumeRole
+                Resource: "arn:aws:iam::867881815416:role/EKSClusterShinyProxyStack-*"
