@@ -338,4 +338,5 @@ Resources:
               - Effect: Allow
                 Action:
                   - sts:AssumeRole
-                Resource: "arn:aws:iam::867881815416:role/EKSClusterShinyProxyStack-*"
+                Resource: 
+                - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/EKSClusterShinyProxyStack-*"
