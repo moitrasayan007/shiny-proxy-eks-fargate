@@ -678,6 +678,8 @@ class EKSClusterShinyProxyStack(Stack):
 
 
 app = App()
+
+stackName = app.node.try_get_context("stackName")
 if app.node.try_get_context("account").strip() != "":
     account = app.node.try_get_context("account")
 else:
@@ -692,5 +694,5 @@ else:
 # Note that if we didn't pass through the ACCOUNT and REGION from these environment variables that
 # it won't let us create 3 AZs and will only create a max of 2 - even when we ask for 3 in eks_vpc
 eks_cluster_stack = EKSClusterShinyProxyStack(
-    app, "EKSClusterShinyProxyStack", env=Environment(account=account, region=region))
+    app, stackName, env=Environment(account=account, region=region))
 app.synth()

@@ -26,6 +26,9 @@ Parameters:
   ShinyAppECR:
     Type: String
     Description: The name of the Shiny App ECR.
+  EksStackName:
+    Type: String
+    Description: The name of the EKS Cloudformation Stack.
 
 Resources:
 
@@ -165,8 +168,9 @@ Resources:
           - Name: S3_BUCKET
             Value:
               Ref: ArtifactsBucket
-          - Name: EKS_STACK_NAME
-            Value: "EKSClusterShinyProxyStack"
+          - Name: EKS_CF_STACK_NAME
+            Value: 
+              Fn::Sub: "${EksStackName}"
           - Name: REPOSITORY_URI_KUBE
             Value: 
               Fn::Sub: "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${KubeProxyECR}"
@@ -339,4 +343,4 @@ Resources:
                 Action:
                   - sts:AssumeRole
                 Resource: 
-                - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/EKSClusterShinyProxyStack-*"
+                - Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/${EksStackName}-*"

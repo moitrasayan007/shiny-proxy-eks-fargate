@@ -130,3 +130,6 @@ dmypy.json
 
 # node_modules
 node_modules/
+cdk.out/
+cdk.out/manifest.json
+cdk.out/tree.json

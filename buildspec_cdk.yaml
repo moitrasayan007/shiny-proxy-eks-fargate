@@ -18,7 +18,7 @@ phases:
       - echo CDK Bootstrap started on `date`
       - npx cdk bootstrap
       - echo CDK Deploy started on `date`
-      - npx cdk deploy --require-approval never
+      - npx cdk deploy --context stackName=$EKS_CF_STACK_NAME --require-approval never
   post_build:
     commands:
       - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
