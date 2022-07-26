@@ -142,6 +142,9 @@ Resources:
           - Name: S3_BUCKET
             Value:
               Ref: ArtifactsBucket
+          - Name: EKS_CF_STACK_NAME
+            Value: 
+              Fn::Sub: "${EksStackName}"
       Cache:
         Type: S3
         Location:
