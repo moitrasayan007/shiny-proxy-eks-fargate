@@ -63,7 +63,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name:
-        Fn::Sub: ${RepositoryName}-pipeline
+        Fn::Sub: "${RepositoryName}-pipeline"
       Stages:
         - Name: Source
           Actions:
