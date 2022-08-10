@@ -199,7 +199,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
-        Fn::Sub: codepipeline.${EksStackName}.${AWS::Region}
+        Fn::Sub: 
+          - 'codepipeline-${RandomGUID}'
+          - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
       LifecycleConfiguration:
         Rules:
           - Id: DeleteBuildArtifactsAfterOneWeek
