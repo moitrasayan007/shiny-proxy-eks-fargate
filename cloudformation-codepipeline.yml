@@ -199,7 +199,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
-        Fn::Sub: codepipeline.${RepositoryName}.${AWS::Region}
+        Fn::Sub: codepipeline.${EksStackName}.${AWS::Region}
       LifecycleConfiguration:
         Rules:
           - Id: DeleteBuildArtifactsAfterOneWeek
