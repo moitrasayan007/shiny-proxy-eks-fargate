@@ -17,8 +17,8 @@
         "deploy_bastion": "True",
         "bastion_node_type": "t3.large",
         "bastion_disk_size": 20,
-        "deploy_cloudwatch_container_insights_metrics": "False",
-        "deploy_cloudwatch_container_insights_logs": "False",
+        "deploy_cloudwatch_container_insights_metrics": "True",
+        "deploy_cloudwatch_container_insights_logs": "True",
         "cloudwatch_container_insights_logs_retention_days": 7,
         "fargate_only_cluster": "True",
         "fargate_logs_to_cloudwatch": "True"
