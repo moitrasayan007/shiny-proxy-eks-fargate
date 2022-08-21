@@ -560,7 +560,7 @@ class EKSClusterShinyProxyStack(Stack):
             fluentbit_chart_cw = eks_cluster.add_helm_chart(
                 "fluentbit-cw",
                 chart="fluent-bit",
-                version="0.19.17",
+                version="0.20.4",
                 release="fluent-bit-cw",
                 repository="https://fluent.github.io/helm-charts",
                 namespace="kube-system",
